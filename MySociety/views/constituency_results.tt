@@ -1,0 +1,133 @@
+<script type="text/javascript">
+$(function(){
+    var cache = {}, lastXhr;
+    $( "#constituency" ).autocomplete({
+        minLength: 2,
+        source: function( request, response ) {
+            var term = request.term;
+            if ( term in cache ) {
+                response( cache[ term ] );
+                return;
+            }
+            lastXhr = $.getJSON( "/search_constituency", request, function( data, status, xhr ) {
+                cache[ term ] = data;
+                if ( xhr === lastXhr ) {
+                    response( data );
+                }
+            });
+        },
+        open: function(event, ui) { 
+            $.pollData = {constituencyId : '', constituencyName : ''};
+            $("#poll_constituency_results").hide();
+            jQuery("#constituencyResultsList").GridUnload();
+
+        },
+        select: function(event, ui) { 
+            //$( "#constituency_id" ).attr( 'value',ui.item.id );
+            //$.pollData.constituencyId = ui.item.id;
+            //$.pollData.constituencyName = ui.item.label;
+            //fillPollData();
+            $("#poll_constituency_results").show();
+            //alert(ui.item.id);
+            showConstituencyResults(ui.item.id);
+            
+        }
+    });
+    $('#constituency').keyup(function(event) {if (event.keyCode == 13) {$('#constituency').blur();}});
+    $('#constituency').blur(function() {
+        if ($("#constituency").attr('value') == '') {
+            $("#poll_constituency_results").hide();
+            jQuery("#constituencyResultsList").GridUnload();
+            $.pollData = {constituencyId : '', constituencyName : ''};
+        }
+        else {
+           // $("#poll_constituency_results").show();
+           // showConstituencyResults($.pollData.constituencyId);
+        }
+    });
+    $("a", ".links").button();
+    $("#poll_constituency_results").hide();
+});
+function showConstituencyResults(constituencyId) {
+  $("#poll_constituency_results").show();
+  $("#constituencyResultsList").jqGrid({
+    url:'/get_constituency_results/'+constituencyId,
+    datatype: 'json',
+    mtype: 'GET',
+    colNames:['id','Party Name','Votes','%'],
+    colModel :[
+        {name:'id', index:'id', width:10, editable: false, hidden:true},
+        {name:'party_name', index:'party.party_name', width:340, editable: false}, 
+        {name:'votes', index:'4', width:50, editable:false},
+        {name:'percentage', index:'4', width:50, editable:false}
+   ],
+    pager: '#constituencyResultsPager',
+    rowNum:10,
+    rowList:[10,20,30],
+    sortname: 'id',
+    sortorder: 'desc',
+    viewrecords: true,
+    gridview: true,
+    caption: 'Constituency Results'
+  }).navGrid(   "#constitiencyResultsPager",
+                {search:false,edit:false,add:false,del:false}
+            );
+    $.ajax({
+        url: "/get_non_voter_for_constituency",
+        cache: true,
+        data: {constituency_id : constituencyId},
+        dataType: "json",
+        success: function(votes){
+            $('#non_voters_count').html(votes.non_voters_count);
+            $('#non_voters_percentage').html(votes.non_voters_percentage);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            alert(errorThrown);
+        }
+    });
+}
+
+$("#constituencyResultsList").setGridWidth(800);
+</script>
+<div id="page">
+    <div id="sidebar">
+        <ul id="sidebar-items">
+            <h3>Menu</h3>
+            <li>
+                <ul class="links">
+                    <li><a href="/">home</a></li>
+                </ul>
+            </li>
+            <li>
+                <h4>Results</h4>
+                <ul class="links">
+                    <li><a href="/national_results">national</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div id="content">
+        <div id="header">
+          <h1>My Society</h1>
+          <h2>Straw poll for england parliament elections</h2>
+        </div>
+
+        <h1>Poll Constituency Results</h1>
+
+        <div class="ui-widget">
+            <label for="constituency">Choose Constituency to see results: </label>
+            <input id="constituency" />
+            <br>Start writing constituency name
+        </div>
+
+        <div id="poll_constituency_results">
+          
+            <table id="constituencyResultsList"><tr><td><td/></tr></table>
+            <div id="constituencyResultsPager"></div>
+
+            <h3>Users with the intention of not voting</h3>
+            Total: <span id="non_voters_count"></span> Percentage: <span id="non_voters_percentage"></span>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,63 @@
+<script type="text/javascript">
+$(function(){ 
+  $("#nationalResultsList").jqGrid({
+    url:'/get_national_results',
+    datatype: 'json',
+    mtype: 'GET',
+    colNames:['id','Party Name','Votes','%'],
+    colModel :[
+        {name:'id', index:'id', width:10, editable: false, hidden:true},
+        {name:'party_name', index:'party.party_name', width:340, editable: false}, 
+        {name:'votes', index:'4', width:50, editable:false},
+        {name:'percentage', index:'4', width:50, editable:false}
+   ],
+    pager: '#nationalResultsPager',
+    rowNum:10,
+    rowList:[10,20,30],
+    sortname: 'id',
+    sortorder: 'desc',
+    viewrecords: true,
+    gridview: true,
+    caption: 'National Results'
+  }).navGrid(   "#nationalResultsPager",
+                {search:false,edit:false,add:false,del:false}
+            );
+    $("a", ".links").button();
+});
+$("#nationalResultsList").setGridWidth(800);
+</script>
+<div id="page">
+    <div id="sidebar">
+        <ul id="sidebar-items">
+            <h3>Menu</h3>
+            <li>
+                <ul class="links">
+                    <li><a href="/">home</a></li>
+                </ul>
+            </li>
+            <li>
+                <h4>Results</h4>
+                <ul class="links">
+                    <li><a href="/constituency_results">constituency</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div id="content">
+        <div id="header">
+          <h1>My Society</h1>
+          <h2>Straw poll for england parliament elections</h2>
+        </div>
+
+        <div id="poll_national_results">
+          <h1>Poll National Results</h1>
+          
+            <table id="nationalResultsList"><tr><td><td/></tr></table>
+            <div id="nationalResultsPager"></div>
+
+            <h3>Users with the intention of not voting</h3>
+            Total: <% non_voters_count %> Percentage: <% non_voters_percentage %>
+        </div>
+    </div>
+</div>

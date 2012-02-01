@@ -1,0 +1,1 @@
+dbicdump -o dump_directory=./lib MySociety::Schema 'dbi:mysql:database=mysociety;host=localhost;port=3306' root ola123
